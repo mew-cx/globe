@@ -13,16 +13,13 @@ class Vec3
 public:
     typedef int Id;
 
-    Vec3( float x, float y, float z, float s, float t ) : _id(_v.size())
+    Vec3( float x, float y, float z ) : _id(_v.size())
     {
         _x = x;
         _y = y;
         _z = z;
         normalize();
-
-        _s = s;
-        _t = t;
-
+        texCoord();
         _v.push_back( this );
     }
 
@@ -32,15 +29,18 @@ public:
         _y = (_v[a]->_y + _v[b]->_y) / 2.0f;
         _z = (_v[a]->_z + _v[b]->_z) / 2.0f;
         normalize();
-
-        const float PI = 3.1415927f;
-        _s = std::atan2( _y, _x ) / (2 * PI) + 0.5f;
-        _t = std::acos( _z ) / PI;
-
+        texCoord();
         _v.push_back( this );
     }
 
     Id id() const { return _id; }
+
+    void texCoord()
+    {
+        const float PI = 3.1415927f;
+        _s = std::atan2( -_y, _x ) / (2 * PI) + 0.5f;
+        _t = std::acos( _z ) / PI;
+    }
 
     void normalize()
     {
@@ -141,24 +141,25 @@ Tri::Array Tri::_t;
 
 int main( int argc, char* argv[] )
 {
-    Vec3* yp = new Vec3(  0,  0, -1,   0.00, 1.0 );     // north pole
-    Vec3* yn = new Vec3(  0,  0,  1,   0.00, 0.0 );     // south poke
+    Vec3* yp = new Vec3(  0,  0, -1 );     // north pole
+    Vec3* yn = new Vec3(  0,  0,  1 );     // south poke
 
-    Vec3* xp = new Vec3(  1,  0,  0,   0.75, 0.5 );     // +90 at equator
-    Vec3* xn = new Vec3( -1,  0,  0,   0.25, 0.5 );     // -90
+    Vec3* xp = new Vec3(  1,  0,  0 );     // +90 at equator
+    Vec3* xn = new Vec3( -1,  0,  0 );     // -90
 
-    Vec3* zp = new Vec3(  0,  1,  0,   0.00, 0.5 );     // 0 at equator
-    Vec3* zn = new Vec3(  0, -1,  0,   1.00, 0.5 );     // 180 at equator
+    Vec3* zp = new Vec3(  0,  1,  0 );     // 0 at equator
+    Vec3* zn = new Vec3(  0, -1,  0 );     // 180 at equator
 
-    Tri::subdivide3( 4, yp, xn, zn );           // A
-    Tri::subdivide3( 4, yp, xn, zp );           // B
-    Tri::subdivide3( 4, yp, xp, zp );           // C
-    Tri::subdivide3( 4, yp, xp, zn );           // D
+    const int levels = 4;
 
-    Tri::subdivide3( 4, yn, xn, zn );           // E
-    Tri::subdivide3( 4, yn, xn, zp );           // F
-    Tri::subdivide3( 4, yn, xp, zp );           // G
-    Tri::subdivide3( 4, yn, xp, zn );           // H
+    Tri::subdivide3( levels, yp, xn, zp );      // A
+    Tri::subdivide3( levels, yp, xp, zp );      // B
+    Tri::subdivide3( levels, yp, xp, zn );      // C
+    Tri::subdivide3( levels, yp, xn, zn );      // D
+    Tri::subdivide3( levels, yn, xn, zp );      // E
+    Tri::subdivide3( levels, yn, xp, zp );      // F
+    Tri::subdivide3( levels, yn, xp, zn );      // G
+    Tri::subdivide3( levels, yn, xn, zn );      // H
 
     printf( "mtllib globe.mtl\n" );
     printf( "usemtl mat1\n" );
