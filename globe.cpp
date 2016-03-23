@@ -58,14 +58,14 @@ public:
     }
 
 public:         // static
-
     static void print()
     {
         for( Array::iterator i = _v.begin(); i != _v.end(); ++i )
         {
             const Vec3& v( **i );
+            const float s = 70.0f;      // scale
 
-            printf( "v  %f %f %f\n", v._x, v._y, v._z );
+            printf( "v  %f %f %f\n", s*v._x, s*v._y, s*v._z );
             printf( "vn %f %f %f\n", v._x, v._y, v._z );
             printf( "vt %f %f\n", v._s, v._t );
         }
