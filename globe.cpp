@@ -181,7 +181,7 @@ int main( int argc, char* argv[] )
     Vec3::print();
     Tri::print();
 
-    return EXIT_SUCCESS;
+    return 0;
 }
 
 
