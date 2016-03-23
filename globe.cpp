@@ -1,5 +1,5 @@
 // globe.cpp
-// http://mew.cx/ 2015-02-15
+// http://mew.cx/ 2015-02-15 2016-03-22
 
 #include <stdio.h>
 #include <vector>
@@ -11,23 +11,25 @@
 class Vec3
 {
 public:
-    typedef int Id;
+    typedef size_t Id;
 
-    Vec3( float x, float y, float z ) : _id(_v.size())
+    Vec3( float x, float y, float z, bool roundUp ) : _id(_v.size())
     {
         _x = x;
         _y = y;
         _z = z;
+        _roundUp = roundUp;
         normalize();
         texCoord();
         _v.push_back( this );
     }
 
-    Vec3( Id a, Id b ) : _id(_v.size())
+    Vec3( Vec3* a, Vec3* b ) : _id(_v.size())
     {
-        _x = (_v[a]->_x + _v[b]->_x) / 2.0f;
-        _y = (_v[a]->_y + _v[b]->_y) / 2.0f;
-        _z = (_v[a]->_z + _v[b]->_z) / 2.0f;
+        _x = (a->_x + b->_x) / 2.0f;
+        _y = (a->_y + b->_y) / 2.0f;
+        _z = (a->_z + b->_z) / 2.0f;
+        _roundUp = ( a->_roundUp && b->_roundUp );
         normalize();
         texCoord();
         _v.push_back( this );
@@ -38,8 +40,13 @@ public:
     void texCoord()
     {
         const float PI = 3.1415927f;
-        _s = std::atan2( -_y, _x ) / (2 * PI) + 0.5f;
-        _t = std::acos( _z ) / PI;
+        _s = std::atan2( _y, _x ) / (2.0f * PI) + 0.5f;
+        _t = std::acos( -_z ) / PI;
+
+        const float tol0(0.01f);
+        const float tol1(1.0f - tol0);
+        if( (_s < tol0) && _roundUp )   _s = 1.0f;
+        if( (_s > tol1) && !_roundUp )  _s = 0.0f;
     }
 
     void normalize()
@@ -68,6 +75,7 @@ private:
     const Id _id;
     float _x, _y, _z;
     float _s, _t;
+    bool _roundUp;
 
 private:
     typedef std::vector<Vec3*> Array;
@@ -100,13 +108,13 @@ public:
             return;
         }
 
-        Vec3* ab = new Vec3( a->id(), b->id() );
-        Vec3* bc = new Vec3( b->id(), c->id() );
-        Vec3* ca = new Vec3( c->id(), a->id() );
+        Vec3* ab( new Vec3( a, b ) );
+        Vec3* bc( new Vec3( b, c ) );
+        Vec3* ca( new Vec3( c, a ) );
 
-        subdivide3( level-1, a, ab, ca );
-        subdivide3( level-1, b, bc, ab );
-        subdivide3( level-1, c, ca, bc );
+        subdivide3( level-1, a,  ab, ca );
+        subdivide3( level-1, b,  bc, ab );
+        subdivide3( level-1, c,  ca, bc );
         subdivide3( level-1, ab, bc, ca );
     }
 
@@ -115,17 +123,20 @@ public:         // static
     {
         for( Array::iterator i = _t.begin(); i != _t.end(); ++i )
         {
-            Tri* t( *i );
-            Vec3::Id a = t->_a+1;
-            Vec3::Id b = t->_b+1;
-            Vec3::Id c = t->_c+1;
-            printf( "f  %d/%d/%d %d/%d/%d %d/%d/%d\n", a, a, a, b, b, b, c, c, c );
+            Tri& t( **i );
+            Vec3::Id a( t._a );
+            Vec3::Id b( t._b );
+            Vec3::Id c( t._c );
+            printf( "f  %d/%d/%d %d/%d/%d %d/%d/%d\n",
+                    a+1, a+1, a+1,
+                    b+1, b+1, b+1,
+                    c+1, c+1, c+1 );
         }
     }
 
 private:
     const Id _id;
-    Vec3::Id _a, _b, _c;
+    const Vec3::Id _a, _b, _c;
 
 private:
     typedef std::vector<Tri*> Array;
