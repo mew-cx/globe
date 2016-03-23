@@ -152,25 +152,28 @@ Tri::Array Tri::_t;
 
 int main( int argc, char* argv[] )
 {
-    Vec3* yp = new Vec3(  0,  0, -1 );     // north pole
-    Vec3* yn = new Vec3(  0,  0,  1 );     // south poke
+    // ECEF : earth-centered, earth-fixed
+    Vec3* xp = new Vec3(  1,  0,  0, true );    // 0 at equator (prime meridian)
+    Vec3* xe = new Vec3( -1,  0,  0, true );    // 180 at equator from east
+    Vec3* xw = new Vec3( -1,  0,  0, false );   // 180 at equator from west
 
-    Vec3* xp = new Vec3(  1,  0,  0 );     // +90 at equator
-    Vec3* xn = new Vec3( -1,  0,  0 );     // -90
+    Vec3* yp = new Vec3(  0,  1,  0, true );    // +90 at equator
+    Vec3* yn = new Vec3(  0, -1,  0, true );    // -90 at equator
 
-    Vec3* zp = new Vec3(  0,  1,  0 );     // 0 at equator
-    Vec3* zn = new Vec3(  0, -1,  0 );     // 180 at equator
+    Vec3* zp = new Vec3(  0,  0,  1, true );    // north pole
+    Vec3* zn = new Vec3(  0,  0, -1, true );    // south pole
 
     const int levels = 4;
 
-    Tri::subdivide3( levels, yp, xn, zp );      // A
-    Tri::subdivide3( levels, yp, xp, zp );      // B
-    Tri::subdivide3( levels, yp, xp, zn );      // C
-    Tri::subdivide3( levels, yp, xn, zn );      // D
-    Tri::subdivide3( levels, yn, xn, zp );      // E
-    Tri::subdivide3( levels, yn, xp, zp );      // F
-    Tri::subdivide3( levels, yn, xp, zn );      // G
-    Tri::subdivide3( levels, yn, xn, zn );      // H
+    Tri::subdivide3( levels, xw, yn, zp );      // A
+    Tri::subdivide3( levels, xp, yn, zp );      // B
+    Tri::subdivide3( levels, xp, yp, zp );      // C
+    Tri::subdivide3( levels, xe, yp, zp );      // D
+
+    Tri::subdivide3( levels, xw, yn, zn );      // E
+    Tri::subdivide3( levels, xp, yn, zn );      // F
+    Tri::subdivide3( levels, xp, yp, zn );      // G
+    Tri::subdivide3( levels, xe, yp, zn );      // H
 
     printf( "mtllib globe.mtl\n" );
     printf( "usemtl mat1\n" );
